@@ -1,0 +1,71 @@
+volatile unsigned long uptime10;
+volatile unsigned long dwntime10;
+volatile unsigned long uptime11;
+volatile unsigned long dwntime11;
+volatile unsigned long uptime12;
+volatile unsigned long dwntime12;
+volatile unsigned long uptime13;
+volatile unsigned long dwntime13;
+
+volatile int diff10;
+volatile int diff11;
+volatile int diff12;
+volatile int diff13;
+void setup()
+{
+  Serial.begin(9600);
+  Serial.println("Start");
+  InitialiseIO();
+  InitialiseInterrupt();
+}
+
+void loop() {
+  /* Nothing to do: the program jumps automatically to Interrupt Service Routine
+   in case of a hardware interrupt  */
+}  
+
+void InitialiseIO(){
+  pinMode(10, INPUT);	   // Pin 10 is input
+  digitalWrite(10, HIGH);  // Configure internal pull-up resistor
+  pinMode(11, INPUT);	   // Pin 11 is input
+  digitalWrite(11, HIGH);  // Configure internal pull-up resistor
+  pinMode(12, INPUT);	   // Pin 12 is input
+  digitalWrite(12, HIGH);  // Configure internal pull-up resistor
+  pinMode(13, INPUT);	   // Pin 13 is input
+  digitalWrite(13, HIGH);  // Configure internal pull-up resistor
+}
+
+void InitialiseInterrupt(){
+  cli();		// switch interrupts off
+  PCICR =  0b00000001;          // Enable PCINT1 interrupt
+  PCMSK0 = 0b11110000;  //for pins 10,11,12,13
+  sei();		// turn interrupts back on
+}
+
+void serialprint()
+{
+  Serial.print(diff10);Serial.print('\t');
+  Serial.print(diff11);Serial.print('\t');
+  Serial.print(diff12);Serial.print('\t');
+  Serial.print(diff13);Serial.print('\n');
+  
+}
+
+
+ISR(PCINT1_vect) {    // Interrupt service routine. Every single PCINT8..14 (=ADC0..5) change
+                      // will generate an interrupt: but this will always be the same interrupt routine
+            
+  if (digitalRead(10)==1)  uptime10=micros();
+  else if (digitalRead(10)==0)  {dwntime10=micros();diff10=dwntime10-uptime10;}
+  
+  if (digitalRead(11)==1)  uptime11=micros();
+  else if (digitalRead(11)==0)  {dwntime11=micros();diff11=dwntime11-uptime11;}
+  
+  if (digitalRead(12)==1)  uptime12=micros();
+  else if (digitalRead(12)==0)  {dwntime12=micros();diff12=dwntime12-uptime12;}
+  
+  if (digitalRead(13)==1)  uptime13=micros();
+  else if (digitalRead(13)==0)  {dwntime13=micros();diff13=dwntime13-uptime13;}
+  
+  serialprint();
+}
