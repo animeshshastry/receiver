@@ -1,3 +1,10 @@
+#define PIN10mask  0b00010000
+#define PIN11mask  0b00100000
+#define PIN12mask  0b01000000
+#define PIN13mask  0b10000000
+
+uint8_t currentstate,previousstate,change;
+
 volatile unsigned long uptime10;
 volatile unsigned long dwntime10;
 volatile unsigned long uptime11;
@@ -54,18 +61,31 @@ void serialprint()
 
 ISR(PCINT1_vect) {    // Interrupt service routine. Every single PCINT8..14 (=ADC0..5) change
                       // will generate an interrupt: but this will always be the same interrupt routine
-            
-  if (digitalRead(10)==1)  uptime10=micros();
-  else if (digitalRead(10)==0)  {dwntime10=micros();diff10=dwntime10-uptime10;}
+  currentstate=PINB;
+  change=currentstate^previousstate; 
+  if (change&PIN10mask)
+  {  
+    if (currentstate&PIN10mask)  uptime10=micros();
+    else {dwntime10=micros();diff10=dwntime10-uptime10;}
+  }
   
-  if (digitalRead(11)==1)  uptime11=micros();
-  else if (digitalRead(11)==0)  {dwntime11=micros();diff11=dwntime11-uptime11;}
+ if (change&PIN11mask)
+  {  
+    if (currentstate&PIN11mask)  uptime11=micros();
+    else {dwntime11=micros();diff11=dwntime11-uptime11;}
+  }
   
-  if (digitalRead(12)==1)  uptime12=micros();
-  else if (digitalRead(12)==0)  {dwntime12=micros();diff12=dwntime12-uptime12;}
+ if (change&PIN10mask)
+  {  
+    if (currentstate&PIN12mask)  uptime12=micros();
+    else {dwntime12=micros();diff12=dwntime12-uptime12;}
+  }
   
-  if (digitalRead(13)==1)  uptime13=micros();
-  else if (digitalRead(13)==0)  {dwntime13=micros();diff13=dwntime13-uptime13;}
-  
+  if (change&PIN10mask)
+  {  
+    if (currentstate&PIN13mask)  uptime13=micros();
+    else {dwntime13=micros();diff13=dwntime13-uptime13;}
+  } 
+  previousstate=currentstate;
   serialprint();
 }
